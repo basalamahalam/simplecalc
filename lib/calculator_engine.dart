@@ -15,6 +15,7 @@ class CalculatorEngine {
 
   void inputDigit(String digit) {
     if (_hasError) clear();
+    _resumeLastNumberIfNeeded();
 
     if (_currentNumber == '0') {
       _currentNumber = digit;
@@ -27,6 +28,7 @@ class CalculatorEngine {
 
   void inputDecimal() {
     if (_hasError) clear();
+    _resumeLastNumberIfNeeded();
 
     if (_currentNumber.contains('.')) return;
 
@@ -39,6 +41,19 @@ class CalculatorEngine {
     }
   }
 
+  // After backspace removes a trailing operator, _tokens may end in a
+  // number with nothing pending in _currentNumber. Resuming that number
+  // (rather than letting a new digit/decimal start an unrelated second
+  // number with no operator between them) keeps _tokens strictly
+  // alternating number/operator, which evaluate() depends on.
+  void _resumeLastNumberIfNeeded() {
+    if (_currentNumber.isEmpty &&
+        _tokens.isNotEmpty &&
+        !_operators.contains(_tokens.last)) {
+      _currentNumber = _tokens.removeLast();
+    }
+  }
+
   void inputOperator(String op) {
     if (_hasError) clear();
 
@@ -47,7 +62,11 @@ class CalculatorEngine {
       _tokens.add(op);
       _currentNumber = '';
     } else if (_tokens.isNotEmpty) {
-      _tokens[_tokens.length - 1] = op;
+      if (_operators.contains(_tokens.last)) {
+        _tokens[_tokens.length - 1] = op;
+      } else {
+        _tokens.add(op);
+      }
     } else if (op == '-') {
       _currentNumber = '-';
     }
@@ -57,8 +76,9 @@ class CalculatorEngine {
     if (_hasError) clear();
 
     if (_currentNumber.isEmpty) return;
-    final value = double.parse(_currentNumber) / 100;
-    _currentNumber = _formatNumber(value);
+    final parsed = double.tryParse(_currentNumber);
+    if (parsed == null) return;
+    _currentNumber = _formatNumber(parsed / 100);
   }
 
   void backspace() {
@@ -124,8 +144,13 @@ class CalculatorEngine {
       result = remainingOps[i] == '+' ? result + next : result - next;
     }
 
+    final formatted = _formatNumber(result);
+    if (formatted == 'Error') {
+      _setError();
+      return;
+    }
     _tokens.clear();
-    _currentNumber = _formatNumber(result);
+    _currentNumber = formatted;
   }
 
   void _setError() {
@@ -139,7 +164,10 @@ class CalculatorEngine {
     if (!value.isFinite) return 'Error';
     var rounded = double.parse(value.toStringAsFixed(10));
     var text = rounded.toString();
-    if (text.contains('.')) {
+    // Exponential notation (e.g. "1.5e+30") must be left untouched: the
+    // trailing-zero strip below would otherwise eat digits out of the
+    // exponent itself, silently shrinking the magnitude.
+    if (!text.contains('e') && text.contains('.')) {
       text = text.replaceFirst(RegExp(r'0+$'), '');
       text = text.replaceFirst(RegExp(r'\.$'), '');
     }

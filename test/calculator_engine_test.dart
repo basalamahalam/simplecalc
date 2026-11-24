@@ -164,5 +164,67 @@ void main() {
       e.evaluate();
       expect(e.display, '0.3333333333');
     });
+
+    test(
+      'backspacing an operator then typing a digit resumes that number without crashing',
+      () {
+        final e = CalculatorEngine();
+        e.inputDigit('5');
+        e.inputOperator('+');
+        e.backspace();
+        e.inputDigit('7');
+        e.evaluate();
+        expect(e.display, '57');
+      },
+    );
+
+    test(
+      'pressing an operator after backspacing one appends it instead of overwriting the number',
+      () {
+        final e = CalculatorEngine();
+        e.inputDigit('5');
+        e.inputOperator('+');
+        e.backspace();
+        e.inputOperator('×');
+        e.inputDigit('3');
+        e.evaluate();
+        expect(e.display, '15');
+      },
+    );
+
+    test('very large results keep their exponential notation intact', () {
+      final e = CalculatorEngine();
+      e.inputDigit('1');
+      e.inputDigit('5');
+      for (var i = 0; i < 29; i++) {
+        e.inputDigit('0');
+      }
+      e.inputOperator('+');
+      e.inputDigit('0');
+      e.evaluate();
+      expect(e.display, '1.5e+30');
+    });
+
+    test('percent on an incomplete negative sign does nothing', () {
+      final e = CalculatorEngine();
+      e.inputOperator('-');
+      e.inputPercent();
+      expect(e.display, '-');
+      expect(e.hasError, false);
+    });
+
+    test('a result that overflows double range shows Error', () {
+      final e = CalculatorEngine();
+      e.inputDigit('9');
+      var overflowed = false;
+      for (var i = 0; i < 400 && !overflowed; i++) {
+        e.inputOperator('×');
+        e.inputDigit('9');
+        e.evaluate();
+        overflowed = e.hasError;
+      }
+      expect(overflowed, true);
+      expect(e.display, 'Error');
+    });
   });
 }
