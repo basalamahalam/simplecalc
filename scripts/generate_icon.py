@@ -27,12 +27,19 @@ def draw_glyph(draw: ImageDraw.ImageDraw, left: int, top: int, right: int, botto
     grid_top = top + screen_height + height * 0.08
     grid_height = bottom - grid_top
     gap = width * 0.06
-    cell_size = (width - 2 * gap) / 3
+    # Fit the 3x3 grid within whichever dimension is tighter, then center
+    # it in both axes — sizing from width alone (ignoring grid_height) let
+    # the grid run past the bottom of the box.
+    cell_size = min((width - 2 * gap) / 3, (grid_height - 2 * gap) / 3)
+    grid_width_actual = 3 * cell_size + 2 * gap
+    grid_height_actual = 3 * cell_size + 2 * gap
+    grid_left = left + (width - grid_width_actual) / 2
+    grid_top_centered = grid_top + (grid_height - grid_height_actual) / 2
 
     for row in range(3):
         for col in range(3):
-            cell_left = left + col * (cell_size + gap)
-            cell_top = grid_top + row * (cell_size + gap)
+            cell_left = grid_left + col * (cell_size + gap)
+            cell_top = grid_top_centered + row * (cell_size + gap)
             cell_rect = (
                 cell_left,
                 cell_top,
