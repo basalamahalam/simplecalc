@@ -1,17 +1,32 @@
-# simplecalc
+# SimpleCalc
 
-A new Flutter project.
+A simple four-function calculator app built with Flutter, targeting Android.
 
-## Getting Started
+- Standard arithmetic (`+`, `-`, `×`, `÷`), decimals, percent, backspace, and clear.
+- Follows standard operator precedence (`×`/`÷` before `+`/`-`), e.g. `2+3×4` = `14`.
+- No network access, no accounts, no ads, no analytics — nothing is collected. See [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md).
 
-This project is a starting point for a Flutter application.
+## Running the app
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+flutter pub get
+flutter run
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Running the tests
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter test
+```
+
+## Building a release bundle
+
+```bash
+flutter build appbundle --release
+```
+
+Produces `build/app/outputs/bundle/release/app-release.aab`.
+
+## Publishing to Google Play
+
+Everything related to submitting this app to Google Play Console — the developer account, signing, store listing, and the current policy checklist — is covered in [`PLAY_STORE_CHECKLIST.md`](PLAY_STORE_CHECKLIST.md).
